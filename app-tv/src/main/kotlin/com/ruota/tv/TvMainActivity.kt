@@ -3,34 +3,33 @@ package com.ruota.tv
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.Modifier
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Surface
-import androidx.tv.material3.Text
-import androidx.tv.material3.darkColorScheme
+import androidx.compose.ui.graphics.Color
+import com.ruota.uicommon.screen.RuotaGameApp
 
 class TvMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { TvApp() }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-fun TvApp() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            // Phase 0 placeholder — replaced by the TV game navigation in Phase 3.
-            Text(
-                text = "La Ruota Della Fortuna",
-                modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
-            )
+        setContent {
+            // The shared game UI is Material3-based (focusable => D-pad friendly). We wrap it
+            // in a Material3 dark theme sized to fill the TV screen.
+            MaterialTheme(
+                colorScheme = darkColorScheme(
+                    primary = Color(0xFFFFEB3B),
+                    onPrimary = Color(0xFF0E240F),
+                    surface = Color(0xFF1B5E20),
+                ),
+            ) {
+                RuotaGameApp(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF0E240F)),
+                )
+            }
         }
     }
 }
