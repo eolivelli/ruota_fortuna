@@ -8,6 +8,20 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 
+# The Android Gradle Plugin needs JDK 17; fall back to a SDKMAN JDK 17 if the current
+# java is newer (this machine's default is JDK 25).
+if ! java -version 2>&1 | grep -q 'version "17'; then
+  for candidate in "$HOME"/.sdkman/candidates/java/17*; do
+    [ -x "$candidate/bin/java" ] && { export JAVA_HOME="$candidate"; break; }
+  done
+fi
+echo "==> Using JDK: $(${JAVA_HOME:+$JAVA_HOME/bin/}java -version 2>&1 | head -1)"
+
+# Windowed by default so you can see/play it; set HEADLESS=1 for no window.
+WINDOW_FLAG=""
+[ "${HEADLESS:-0}" = "1" ] && WINDOW_FLAG="-no-window"
+GPU="${EMULATOR_GPU:-swiftshader_indirect}"
+
 case "$TARGET" in
   mobile)
     AVD="Pixel_Phone"; PORT=5554
@@ -34,7 +48,7 @@ echo "==> Building $GRADLE_TASK"
 if ! adb devices | grep -q "^$SERIAL"; then
   echo "==> Booting AVD '$AVD' (headless)"
   nohup "$ANDROID_HOME/emulator/emulator" -avd "$AVD" -no-snapshot -no-boot-anim \
-    -gpu swiftshader_indirect -port "$PORT" >/tmp/ruota_emu_$TARGET.log 2>&1 &
+    $WINDOW_FLAG -gpu "$GPU" -port "$PORT" >/tmp/ruota_emu_$TARGET.log 2>&1 &
   adb -s "$SERIAL" wait-for-device
   echo -n "==> Waiting for boot"
   until [ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
