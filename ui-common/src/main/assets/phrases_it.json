@@ -1,0 +1,20 @@
+{
+  "language": "it",
+  "phrases": [
+    { "category": "Proverbio", "text": "In bocca al lupo" },
+    { "category": "Proverbio", "text": "Chi dorme non piglia pesci" },
+    { "category": "Proverbio", "text": "Tra il dire e il fare c'è di mezzo il mare" },
+    { "category": "Modo di dire", "text": "Avere le mani in pasta" },
+    { "category": "Modo di dire", "text": "Prendere due piccioni con una fava" },
+    { "category": "Luogo", "text": "La torre di Pisa" },
+    { "category": "Luogo", "text": "Il colosseo di Roma" },
+    { "category": "Cosa", "text": "Un piatto di spaghetti" },
+    { "category": "Cosa", "text": "La macchina del caffè" },
+    { "category": "Personaggio", "text": "Leonardo da Vinci" },
+    { "category": "Personaggio", "text": "Giuseppe Garibaldi" },
+    { "category": "Film", "text": "La vita è bella" },
+    { "category": "Film", "text": "Nuovo cinema paradiso" },
+    { "category": "Citazione", "text": "L'amor che move il sole e l'altre stelle" },
+    { "category": "Cosa", "text": "Il gatto con gli stivali" }
+  ]
+}
