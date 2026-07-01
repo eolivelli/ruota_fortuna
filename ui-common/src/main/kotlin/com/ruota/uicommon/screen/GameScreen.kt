@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,9 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ruota.core.engine.ActionType
 import com.ruota.core.engine.GameState
+import com.ruota.core.engine.Outcome
 import com.ruota.core.engine.TurnPhase
 import com.ruota.core.model.SolveMode
 import com.ruota.core.model.WheelWedge
+import com.ruota.uicommon.audio.SoundCue
+import com.ruota.uicommon.audio.rememberGameSounds
+import com.ruota.uicommon.audio.soundCueFor
 import com.ruota.uicommon.board.PuzzleBoard
 import com.ruota.uicommon.format.formatMoney
 import com.ruota.uicommon.game.GameViewModel
@@ -42,6 +47,8 @@ import com.ruota.uicommon.keyboard.Keys
 import com.ruota.uicommon.keyboard.LetterKeyboard
 import com.ruota.uicommon.theme.RuotaColors
 import com.ruota.uicommon.wheel.WheelOfFortune
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * The full in-game screen: player standings, board, wheel, and the context-sensitive
@@ -64,6 +71,22 @@ fun GameScreen(
     var showVowelPicker by remember { mutableStateOf(false) }
     var showSolveInput by remember { mutableStateOf(false) }
     var showQuitConfirm by remember { mutableStateOf(false) }
+    var spinStreamId by remember { mutableStateOf(0) }
+
+    val sounds = rememberGameSounds()
+    val scope = rememberCoroutineScope()
+    // Plays the sound cue for a just-produced outcome (a ding per revealed letter, a buzzer
+    // on a miss, the fanfare on a correct solve). Spin sound is handled at the spin action.
+    val playCue: (Outcome?) -> Unit = { outcome ->
+        when (val cue = soundCueFor(outcome)) {
+            is SoundCue.Ding -> {
+                scope.launch { repeat(cue.times) { sounds.playDing(); delay(150) } }
+            }
+            SoundCue.Miss -> sounds.playMiss()
+            SoundCue.Winner -> sounds.playWinner()
+            null -> {}
+        }
+    }
 
     Column(
         modifier = modifier
@@ -98,7 +121,7 @@ fun GameScreen(
             wedges = wedges,
             targetIndex = spinTarget,
             isSpinning = spinning,
-            onSpinSettled = { spinning = false },
+            onSpinSettled = { spinning = false; sounds.stop(spinStreamId) },
             modifier = Modifier.size(300.dp),
         )
 
@@ -114,9 +137,15 @@ fun GameScreen(
                         onSpin = {
                             viewModel.spin()
                             spinTarget = spinIndexOf(viewModel.lastOutcome.value)
-                            if (spinTarget != null) spinning = true
+                            if (spinTarget != null) {
+                                spinning = true
+                                spinStreamId = sounds.playSpin()
+                            }
                         },
-                        onGuessConsonant = { viewModel.guessConsonant(it) },
+                        onGuessConsonant = {
+                            viewModel.guessConsonant(it)
+                            playCue(viewModel.lastOutcome.value)
+                        },
                         onBuyVowel = { showVowelPicker = true },
                         onSolve = { showSolveInput = true },
                     )
@@ -135,7 +164,11 @@ fun GameScreen(
     if (showVowelPicker) {
         VowelPickerDialog(
             guessed = state.guessedLetters,
-            onPick = { viewModel.buyVowel(it); showVowelPicker = false },
+            onPick = {
+                viewModel.buyVowel(it)
+                playCue(viewModel.lastOutcome.value)
+                showVowelPicker = false
+            },
             onDismiss = { showVowelPicker = false },
         )
     }
@@ -144,12 +177,20 @@ fun GameScreen(
         if (state.config.solveMode == SolveMode.HOST_CONFIRM) {
             HostConfirmDialog(
                 solution = peekSolution(),
-                onResult = { viewModel.hostConfirm(it); showSolveInput = false },
+                onResult = {
+                    viewModel.hostConfirm(it)
+                    playCue(viewModel.lastOutcome.value)
+                    showSolveInput = false
+                },
                 onDismiss = { showSolveInput = false },
             )
         } else {
             SolveInputDialog(
-                onSubmit = { viewModel.attemptSolve(it); showSolveInput = false },
+                onSubmit = {
+                    viewModel.attemptSolve(it)
+                    playCue(viewModel.lastOutcome.value)
+                    showSolveInput = false
+                },
                 onDismiss = { showSolveInput = false },
             )
         }
