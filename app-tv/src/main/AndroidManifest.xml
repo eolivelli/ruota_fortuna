@@ -20,6 +20,7 @@
         <activity
             android:name=".TvMainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode|density"
             android:label="@string/app_name"
             android:theme="@style/Theme.RuotaTv">
             <intent-filter>

@@ -80,6 +80,21 @@ fun SolveInputDialog(
     )
 }
 
+/** Confirms abandoning the current match and returning to player setup. */
+@Composable
+fun QuitConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Abbandonare la partita?") },
+        text = { Text("La partita in corso verrà persa e tornerai alla schermata iniziale.") },
+        confirmButton = { Button(onClick = onConfirm) { Text("Abbandona") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Continua") } },
+    )
+}
+
 /** Host-confirm solve: reveals the solution and asks the group to judge it. */
 @Composable
 fun HostConfirmDialog(

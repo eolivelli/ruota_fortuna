@@ -63,6 +63,7 @@ fun GameScreen(
     var spinTarget by remember { mutableStateOf<Int?>(null) }
     var showVowelPicker by remember { mutableStateOf(false) }
     var showSolveInput by remember { mutableStateOf(false) }
+    var showQuitConfirm by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -73,7 +74,7 @@ fun GameScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Header(state)
+        Header(state, onQuit = { showQuitConfirm = true })
         PlayerBar(state)
 
         PuzzleBoard(
@@ -124,6 +125,13 @@ fun GameScreen(
         }
     }
 
+    if (showQuitConfirm) {
+        QuitConfirmDialog(
+            onConfirm = { showQuitConfirm = false; onNewGame() },
+            onDismiss = { showQuitConfirm = false },
+        )
+    }
+
     if (showVowelPicker) {
         VowelPickerDialog(
             guessed = state.guessedLetters,
@@ -149,13 +157,20 @@ fun GameScreen(
 }
 
 @Composable
-private fun Header(state: GameState) {
-    Text(
-        text = "Round ${state.roundNumber} / ${state.config.numRounds}",
-        color = RuotaColors.Accent,
-        fontSize = 22.sp,
-        fontWeight = FontWeight.Bold,
-    )
+private fun Header(state: GameState, onQuit: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Round ${state.roundNumber} / ${state.config.numRounds}",
+            color = RuotaColors.Accent,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        OutlinedButton(onClick = onQuit) { Text("Esci") }
+    }
 }
 
 @Composable
